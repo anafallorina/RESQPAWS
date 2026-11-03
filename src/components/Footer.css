@@ -1,101 +1,221 @@
+/* FOOTER */
 
 .footer {
   width: 100%;
-  padding: 55px 7% 20px;
+  padding: 65px 7% 22px;
   background: #E8EEE5;
   color: #39483C;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Sinisigurong nakagitna ang buong footer contents */
 }
 
-.footer-content {
+/* MAIN FOOTER LAYOUT */
+
+.footer-main {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
-  gap: 35px;
-  padding-bottom: 40px;
+  grid-template-columns: 1.6fr 0.85fr 1fr 1.4fr;
+  gap: 55px;
+  padding-bottom: 50px;
+  justify-content: center; /* Ginagapang sa gitna ang grid items */
+  justify-items: start;    /* Nakatapat sa itaas ang laman ng bawat column */
+}
+
+/* BRAND */
+
+.footer-brand {
+  max-width: 320px;
 }
 
 .footer-logo {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   color: #718C75;
-  font-size: 23px;
-  font-weight: 800;
+  text-decoration: none;
 }
 
-.footer-logo span {
+.footer-logo-text {
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+}
+
+.footer-logo-text span {
   color: #D99AA8;
 }
 
-.footer-brand > p {
-  max-width: 270px;
-  margin-top: 18px;
+.footer-description {
+  max-width: 285px;
+  margin-top: 20px;
   color: #68746A;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 .footer-message {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 18px;
+  gap: 9px;
+  margin-top: 22px;
   color: #C77F91;
   font-size: 13px;
-  font-weight: bold;
+  font-weight: 700;
 }
+
+/* FOOTER COLUMNS */
 
 .footer-column {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 15px;
 }
 
 .footer-column h3 {
-  margin-bottom: 5px;
-  font-size: 16px;
+  margin-bottom: 7px;
+  color: #39483C;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .footer-column a,
 .footer-column p {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #68746A;
   font-size: 13px;
+  line-height: 1.6;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .footer-column a:hover {
   color: #C77F91;
 }
 
-.footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  padding-top: 20px;
-  border-top: 1px solid #D2DDD0;
-  color: #788078;
-  font-size: 12px;
+/* CONTACT */
+
+.footer-contact p {
+  align-items: flex-start;
 }
 
-.footer-bottom p:last-child {
+.footer-contact p svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #718C75;
+}
+
+.footer-contact-link {
+  margin-top: 5px;
+  color: #718C75 !important;
+  font-weight: 700;
+}
+
+.footer-contact-link:hover {
+  color: #C77F91 !important;
+}
+
+/* BOTTOM BAR */
+
+.footer > .footer-bottom {
+  width: 100%;
+  max-width: 1200px; /* Sinabay sa lapad ng footer-main para pantay */
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  align-items: center;
+  gap: 10px;
+  padding-top: 22px;
+  margin-top: 35px;
+  border-top: 1px solid rgba(57, 72, 60, 0.18);
+}
+
+.footer > .footer-bottom p {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+}
+
+.footer-credit,
+.footer-made {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
 }
 
-@media (max-width: 800px) {
-  .footer-content {
-    grid-template-columns: repeat(2, 1fr);
+.footer-credit svg,
+.footer-made svg {
+  color: #D99AA8;
+  flex-shrink: 0;
+} 
+
+/* TABLET */
+
+@media (max-width: 1000px) {
+  .footer-main {
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 40px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+    max-width: 420px;
   }
 }
 
-@media (max-width: 500px) {
-  .footer-content {
-    grid-template-columns: 1fr;
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .footer {
+    padding: 45px 6% 20px;
+  }
+
+  .footer-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 38px 22px;
+    padding-bottom: 35px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+    max-width: 100%;
+  }
+
+  .footer-description {
+    max-width: 330px;
+  }
+
+  .footer-column {
+    gap: 13px;
+  }
+
+  .footer-column h3 {
+    margin-bottom: 5px;
   }
 
   .footer-bottom {
-    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-top: 18px;
+  }
+}
+
+/* SMALL MOBILE */
+
+@media (max-width: 360px) {
+  .footer-main {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-brand {
+    grid-column: auto;
   }
 }
