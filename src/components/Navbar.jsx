@@ -2,6 +2,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { PawPrint, Menu, X } from "lucide-react";
 import { useState } from "react";
+import "./Navbar.css";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);

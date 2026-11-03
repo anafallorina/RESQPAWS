@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { PawPrint, Mail, ArrowLeft, Send } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import "./ForgotPassword.css";
+import "./ForgetPassword.css";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
