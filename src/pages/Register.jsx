@@ -1,6 +1,14 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+
+import { auth, db } from "../firebase";
+
 import {
   PawPrint,
   UserRound,
@@ -17,8 +25,11 @@ import Footer from "../components/Footer";
 import "./Register.css";
 
 function Register() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -35,7 +46,7 @@ function Register() {
     });
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
@@ -48,8 +59,69 @@ function Register() {
       return;
     }
 
-    // Firebase registration will be connected here.
-    alert("Registration interface is ready for Firebase integration.");
+    setLoading(true);
+
+    try {
+      // 1. CREATE FIREBASE AUTHENTICATION ACCOUNT
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email.trim(),
+        formData.password
+      );
+
+      const user = userCredential.user;
+
+      // 2. SAVE USER'S DISPLAY NAME
+      await updateProfile(user, {
+        displayName: formData.fullName.trim()
+      });
+
+      // 3. SAVE USER INFORMATION IN FIRESTORE
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        contactNumber: formData.contactNumber.trim(),
+        role: "user",
+        createdAt: serverTimestamp()
+      });
+
+      alert("Your RESQPAWS account has been created successfully!");
+
+      // 4. GO TO DASHBOARD
+      navigate("/dashboard");
+
+    } catch (error) {
+      console.error("Registration error:", error);
+
+      let message = "Registration failed. Please try again.";
+
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          message = "This email is already registered.";
+          break;
+
+        case "auth/invalid-email":
+          message = "Please enter a valid email address.";
+          break;
+
+        case "auth/weak-password":
+          message = "Your password is too weak. Use at least 6 characters.";
+          break;
+
+        case "permission-denied":
+          message = "Database permission denied. Please check your Firestore security rules.";
+          break;
+
+        default:
+          message = error.message;
+      }
+
+      alert(message);
+
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -197,8 +269,13 @@ function Register() {
                 </span>
               </label>
 
-              <button type="submit" className="register-submit">
-                Create Account <ArrowRight size={18} />
+              <button
+                type="submit"
+                className="register-submit"
+                disabled={loading}
+              >
+                {loading ? "Creating Account..." : "Create Account"}
+                {!loading && <ArrowRight size={18} />}
               </button>
             </form>
 

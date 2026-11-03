@@ -18,6 +18,13 @@ import {
   Check,
 } from "lucide-react";
 
+import { auth, db } from "../firebase";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -37,7 +44,10 @@ const animalMarker = L.divIcon({
 function MapClickHandler({ onLocationSelect }) {
   useMapEvents({
     click(event) {
-      onLocationSelect([event.latlng.lat, event.latlng.lng]);
+      onLocationSelect([
+        event.latlng.lat,
+        event.latlng.lng,
+      ]);
     },
   });
 
@@ -59,7 +69,6 @@ function CustomDropdown({
     (option) => option.value === value
   );
 
-  // Close dropdown when clicking outside or pressing Escape
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (
@@ -104,10 +113,14 @@ function CustomDropdown({
       >
         <span
           className={
-            selectedOption ? "selected-value" : "placeholder-value"
+            selectedOption
+              ? "selected-value"
+              : "placeholder-value"
           }
         >
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedOption
+            ? selectedOption.label
+            : placeholder}
         </span>
 
         <ChevronDown
@@ -142,6 +155,7 @@ function CustomDropdown({
   );
 }
 
+// MAIN REPORT ANIMAL COMPONENT
 function ReportAnimal() {
   const [form, setForm] = useState({
     animalType: "",
@@ -157,6 +171,7 @@ function ReportAnimal() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [resolvedAddress, setResolvedAddress] = useState("");
   const [addressLoading, setAddressLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // UPDATE FORM FIELDS
   const handleChange = (event) => {
@@ -289,12 +304,17 @@ function ReportAnimal() {
     );
   };
 
-  // SUBMIT REPORT
-  const handleSubmit = (event) => {
+  // SUBMIT REPORT TO FIRESTORE
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!form.animalType || !form.condition) {
       alert("Please select the animal type and current condition.");
+      return;
+    }
+
+    if (!form.description.trim()) {
+      alert("Please provide a description of the animal.");
       return;
     }
 
@@ -308,22 +328,65 @@ function ReportAnimal() {
       return;
     }
 
-    const reportDetails = {
-      ...form,
-      address: resolvedAddress,
-      location: {
-        latitude: location[0],
-        longitude: location[1],
-      },
-      photo,
-    };
+    const currentUser = auth.currentUser;
 
-    // FIREBASE SUBMISSION WILL BE CONNECTED LATER
-    console.log("Report details:", reportDetails);
+    if (!currentUser) {
+      alert("Please log in before submitting an animal report.");
+      return;
+    }
 
-    alert(
-      "Your report form is ready. Firebase submission will be connected next."
-    );
+    try {
+      setSubmitting(true);
+
+      const reportData = {
+        animalType: form.animalType,
+        condition: form.condition,
+        description: form.description.trim(),
+        locationDescription: form.locationDescription.trim(),
+
+        address: resolvedAddress,
+
+        location: {
+          latitude: location[0],
+          longitude: location[1],
+        },
+
+        // Photo upload will be connected to Cloudinary later.
+        photoUrl: null,
+
+        status: "Pending",
+        reporterUid: currentUser.uid,
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(
+        collection(db, "rescueReports"),
+        reportData
+      );
+
+      alert("Animal report submitted successfully!");
+
+      // RESET FORM
+      setForm({
+        animalType: "",
+        condition: "",
+        description: "",
+        locationDescription: "",
+      });
+
+      setLocation(null);
+      setPhoto(null);
+      setPhotoPreview("");
+
+    } catch (error) {
+      console.error("Error submitting report:", error);
+
+      alert(
+        "Unable to submit your report. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -344,7 +407,10 @@ function ReportAnimal() {
           </p>
         </section>
 
-        <form className="report-form" onSubmit={handleSubmit}>
+        <form
+          className="report-form"
+          onSubmit={handleSubmit}
+        >
           {/* ANIMAL INFORMATION */}
           <div className="report-section">
             <div className="section-heading">
@@ -357,7 +423,6 @@ function ReportAnimal() {
             </div>
 
             <div className="form-grid">
-              {/* ANIMAL TYPE */}
               <div className="form-field">
                 <label htmlFor="animalType">
                   Animal Type <span>*</span>
@@ -381,7 +446,6 @@ function ReportAnimal() {
                 />
               </div>
 
-              {/* CURRENT CONDITION */}
               <div className="form-field">
                 <label htmlFor="condition">
                   Current Condition <span>*</span>
@@ -409,7 +473,6 @@ function ReportAnimal() {
               </div>
             </div>
 
-            {/* DESCRIPTION */}
             <div className="form-field">
               <label htmlFor="description">
                 Description <span>*</span>
@@ -442,7 +505,10 @@ function ReportAnimal() {
 
             {photoPreview ? (
               <div className="photo-preview">
-                <img src={photoPreview} alt="Animal preview" />
+                <img
+                  src={photoPreview}
+                  alt="Animal preview"
+                />
 
                 <div className="photo-details">
                   <span>{photo?.name}</span>
@@ -462,7 +528,10 @@ function ReportAnimal() {
                 </button>
               </div>
             ) : (
-              <label className="upload-area" htmlFor="animalPhoto">
+              <label
+                className="upload-area"
+                htmlFor="animalPhoto"
+              >
                 <span className="upload-icon">
                   <Camera size={25} />
                 </span>
@@ -514,10 +583,15 @@ function ReportAnimal() {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                <MapClickHandler onLocationSelect={setLocation} />
+                <MapClickHandler
+                  onLocationSelect={setLocation}
+                />
 
                 {location && (
-                  <Marker position={location} icon={animalMarker} />
+                  <Marker
+                    position={location}
+                    icon={animalMarker}
+                  />
                 )}
               </MapContainer>
             </div>
@@ -535,7 +609,6 @@ function ReportAnimal() {
                 : "Use My Current Location"}
             </button>
 
-            {/* DETECTED ADDRESS */}
             {location && (
               <div className="selected-location">
                 <MapPin size={19} />
@@ -561,7 +634,6 @@ function ReportAnimal() {
               </div>
             )}
 
-            {/* ADDITIONAL LOCATION DETAILS */}
             <div className="form-field location-description-field">
               <label htmlFor="locationDescription">
                 Additional Location Details
@@ -594,8 +666,15 @@ function ReportAnimal() {
               <span>*</span> Required fields
             </p>
 
-            <button type="submit" className="submit-report-btn">
-              Submit Animal Report
+            <button
+              type="submit"
+              className="submit-report-btn"
+              disabled={submitting}
+            >
+              {submitting
+                ? "Submitting..."
+                : "Submit Animal Report"}
+
               <Upload size={17} />
             </button>
           </div>
