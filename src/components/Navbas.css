@@ -1,0 +1,108 @@
+
+.navbar {
+  width: 100%;
+  min-height: 80px;
+  padding: 15px 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFF9F6;
+  position: relative;
+  z-index: 100;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #718C75;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.logo-pink {
+  color: #D99AA8;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.navbar-links > a {
+  color: #59675B;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.navbar-links > a:hover,
+.navbar-links > a.active {
+  color: #D18B9B;
+}
+
+.navbar-buttons {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.login-btn {
+  color: #59675B;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.register-btn {
+  padding: 12px 22px;
+  border-radius: 8px;
+  background: #718C75;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.register-btn:hover {
+  background: #59745E;
+}
+
+.menu-toggle {
+  display: none;
+  background: transparent;
+  color: #718C75;
+  padding: 8px;
+}
+
+@media (max-width: 850px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .navbar-links {
+    display: none;
+    position: absolute;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    padding: 25px;
+    background: #FFF9F6;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 22px;
+    box-shadow: 0 8px 15px #00000010;
+  }
+
+  .navbar-links.show-menu {
+    display: flex;
+  }
+
+  .navbar-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .register-btn {
+    text-align: center;
+  }
+}

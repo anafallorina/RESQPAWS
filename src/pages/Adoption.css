@@ -1,0 +1,166 @@
+
+.adoption-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #FFF9F6;
+}
+
+.adoption-hero {
+  min-height: 350px;
+  padding: 65px 9%;
+  background: #F6DDE3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.section-tag {
+  color: #718C75;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.adoption-hero h1 {
+  margin: 18px 0;
+  font-size: clamp(38px, 5vw, 58px);
+  line-height: 1.15;
+}
+
+.adoption-hero h1 span {
+  color: #C77F91;
+}
+
+.adoption-hero p {
+  max-width: 520px;
+  color: #68746A;
+  line-height: 1.8;
+}
+
+.adoption-hero-icon {
+  color: #B7CBB7;
+}
+
+.adoption-content {
+  padding: 75px 9%;
+  min-height: 430px;
+}
+
+.adoption-heading {
+  text-align: center;
+}
+
+.adoption-heading h2 {
+  margin: 15px 0;
+  font-size: 32px;
+}
+
+.adoption-heading p {
+  color: #788078;
+}
+
+.adoption-filters {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 35px auto;
+  max-width: 650px;
+}
+
+.adoption-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  border: 1px solid #DDD8D4;
+  border-radius: 8px;
+  background: white;
+  color: #718C75;
+}
+
+.adoption-search input {
+  border: none;
+  outline: none;
+}
+
+.adoption-filters select {
+  width: 150px;
+}
+
+.adoption-empty {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 35px;
+  text-align: center;
+  background: white;
+  border: 1px solid #EEEAE5;
+  border-radius: 15px;
+}
+
+.empty-icon {
+  display: inline-flex;
+  padding: 17px;
+  border-radius: 50%;
+  background: #F6DDE3;
+  color: #C77F91;
+}
+
+.adoption-empty h3 {
+  margin: 18px 0 10px;
+}
+
+.adoption-empty p {
+  color: #788078;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.adoption-cta {
+  margin: 0 7% 70px;
+  padding: 45px 25px;
+  border-radius: 16px;
+  background: #E8EEE5;
+  text-align: center;
+}
+
+.adoption-cta h2 {
+  margin-bottom: 12px;
+}
+
+.adoption-cta p {
+  margin-bottom: 25px;
+  color: #68746A;
+}
+
+.adoption-cta a {
+  display: inline-block;
+  padding: 13px 23px;
+  background: #718C75;
+  color: white;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+@media (max-width: 650px) {
+  .adoption-hero {
+    padding: 50px 7%;
+  }
+
+  .adoption-hero-icon {
+    display: none;
+  }
+
+  .adoption-filters {
+    flex-direction: column;
+  }
+
+  .adoption-filters select {
+    width: 100%;
+  }
+
+  .adoption-content {
+    padding: 55px 7%;
+  }
+}
