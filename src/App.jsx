@@ -10,6 +10,8 @@ import RescueCases from "./pages/RescueCases.jsx";
 import Adoption from "./pages/Adoption.jsx";
 import Volunteer from "./pages/Volunteer.jsx";
 import ForgetPassword from "./pages/ForgetPassword.jsx";
+import AdminDashboard from "./pages/AdminDashboard";
+
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
         <Route path="/rescue-cases" element={<RescueCases />} />
         <Route path="/adoption" element={<Adoption />} />
         <Route path="/volunteer" element={<Volunteer />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         
       </Routes>
     </BrowserRouter>

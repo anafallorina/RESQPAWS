@@ -320,3 +320,133 @@
     padding: 35px 5% 55px;
   }
 }
+
+/* FIRESTORE REPORT PHOTOS */
+
+.rescue-animal-photo {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.loading-icon {
+  animation: rescue-spin 1s linear infinite;
+}
+
+@keyframes rescue-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* REPORT DETAILS MODAL */
+
+.case-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+}
+
+.case-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 25px;
+  border-radius: 15px;
+  background: white;
+}
+
+.case-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.case-modal-header h2 {
+  color: #39483C;
+  font-size: 22px;
+}
+
+.case-modal-header button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  background: #F5F1EE;
+  color: #39483C;
+  border-radius: 8px;
+}
+
+.case-modal-photo {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+
+.case-modal-no-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 140px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: #F8F5F2;
+  color: #888;
+}
+
+.case-modal h3 {
+  margin: 15px 0 10px;
+  color: #39483C;
+  font-size: 20px;
+}
+
+.case-modal > p {
+  margin-bottom: 20px;
+  color: #777;
+  line-height: 1.6;
+}
+
+.case-modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 18px 0;
+  margin-bottom: 15px;
+  border-top: 1px solid #EEE7E3;
+}
+
+.case-modal-details div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.case-modal-details strong {
+  color: #39483C;
+  font-size: 13px;
+}
+
+.case-modal-details span {
+  color: #777;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 650px) {
+  .case-modal {
+    padding: 20px;
+  }
+}
