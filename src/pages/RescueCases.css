@@ -1,8 +1,13 @@
 
+/* =====================================
+   RESCUE CASES PAGE
+===================================== */
+
 .rescue-page {
   min-height: 75vh;
   padding: 55px 7% 80px;
   background: var(--cream);
+  font-family: Arial, sans-serif;
 }
 
 .rescue-header {
@@ -56,6 +61,10 @@
   color: white;
   transform: translateY(-2px);
 }
+
+/* =====================================
+   RESCUE CONTENT
+===================================== */
 
 .rescue-content {
   width: 100%;
@@ -125,6 +134,10 @@
   color: white;
 }
 
+/* =====================================
+   RESULTS HEADING
+===================================== */
+
 .rescue-results-heading {
   margin-bottom: 20px;
 }
@@ -139,6 +152,10 @@
   color: #888;
   font-size: 13px;
 }
+
+/* =====================================
+   RESCUE CASE CARDS
+===================================== */
 
 .rescue-case-grid {
   display: grid;
@@ -164,8 +181,23 @@
 .rescue-card-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
   margin-bottom: 20px;
+}
+
+/* =====================================
+   ANIMAL PHOTO - INCREASED SIZE
+===================================== */
+
+.rescue-animal-photo {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 14px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .animal-icon {
@@ -184,6 +216,7 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .case-status.pending {
@@ -224,6 +257,10 @@
   margin-bottom: 20px;
 }
 
+/* =====================================
+   CARD DETAILS
+===================================== */
+
 .rescue-card-details {
   display: flex;
   flex-direction: column;
@@ -263,6 +300,10 @@
   color: white;
 }
 
+/* =====================================
+   EMPTY STATE
+===================================== */
+
 .rescue-empty {
   padding: 65px 20px;
   text-align: center;
@@ -286,49 +327,9 @@
   font-size: 13px;
 }
 
-@media (max-width: 1000px) {
-  .rescue-case-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .rescue-page {
-    padding-left: 5%;
-    padding-right: 5%;
-  }
-}
-
-@media (max-width: 650px) {
-  .rescue-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .rescue-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .rescue-filter-label {
-    display: none;
-  }
-
-  .rescue-case-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .rescue-page {
-    padding: 35px 5% 55px;
-  }
-}
-
-/* FIRESTORE REPORT PHOTOS */
-
-.rescue-animal-photo {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 12px;
-}
+/* =====================================
+   LOADING
+===================================== */
 
 .loading-icon {
   animation: rescue-spin 1s linear infinite;
@@ -340,7 +341,9 @@
   }
 }
 
-/* REPORT DETAILS MODAL */
+/* =====================================
+   REPORT DETAILS MODAL
+===================================== */
 
 .case-modal-overlay {
   position: fixed;
@@ -386,12 +389,16 @@
   border-radius: 8px;
 }
 
+/* LARGER MODAL PHOTO */
+
 .case-modal-photo {
   width: 100%;
-  max-height: 260px;
+  height: 350px;
   object-fit: cover;
+  object-position: center;
   border-radius: 10px;
   margin-bottom: 18px;
+  display: block;
 }
 
 .case-modal-no-photo {
@@ -445,8 +452,54 @@
   overflow-wrap: anywhere;
 }
 
+/* =====================================
+   RESPONSIVE
+===================================== */
+
+@media (max-width: 1000px) {
+  .rescue-case-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rescue-page {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+}
+
 @media (max-width: 650px) {
+  .rescue-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rescue-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rescue-filter-label {
+    display: none;
+  }
+
+  .rescue-case-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rescue-page {
+    padding: 35px 5% 55px;
+  }
+
+  .rescue-animal-photo {
+    width: 110px;
+    height: 110px;
+  }
+
   .case-modal {
     padding: 20px;
+  }
+
+  .case-modal-photo {
+    height: 250px;
   }
 }

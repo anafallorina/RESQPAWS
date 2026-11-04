@@ -11,7 +11,9 @@ import Adoption from "./pages/Adoption.jsx";
 import Volunteer from "./pages/Volunteer.jsx";
 import ForgetPassword from "./pages/ForgetPassword.jsx";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
@@ -25,8 +27,18 @@ function App() {
         <Route path="/rescue-cases" element={<RescueCases />} />
         <Route path="/adoption" element={<Adoption />} />
         <Route path="/volunteer" element={<Volunteer />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        
+        <Route path="/forgot-password" element={<ForgetPassword />} />
+
+        <Route path="/admin/login" element={<AdminLogin />} />
+
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

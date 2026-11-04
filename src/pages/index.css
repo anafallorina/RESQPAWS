@@ -1,24 +1,31 @@
+/* GLOBAL RESET */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* GLOBAL FONT */
 html,
-body {
-  font-family: Arial, sans-serif;
-  width: 100%;
-  min-height: 100%;
-}
-
+body,
 #root {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
+  font-family: Arial, sans-serif !important;
 }
 
+body,
 button,
 input,
 textarea,
 select {
-  font-family: inherit;
+  font-family: Arial, sans-serif !important;
+}
+
+#root {
+  font-size: 14px;
+}
+
+body {
+  overflow-x: hidden;
 }

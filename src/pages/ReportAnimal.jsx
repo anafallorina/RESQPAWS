@@ -173,6 +173,10 @@ function ReportAnimal() {
   const [addressLoading, setAddressLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // CLOUDINARY CONFIGURATION
+  const CLOUDINARY_CLOUD_NAME = "sdxv2xdv";
+  const CLOUDINARY_UPLOAD_PRESET = "resqpaws_upload";
+
   // UPDATE FORM FIELDS
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -338,6 +342,34 @@ function ReportAnimal() {
     try {
       setSubmitting(true);
 
+      // UPLOAD PHOTO TO CLOUDINARY FIRST (if a photo was selected)
+      let uploadedPhotoUrl = null;
+
+      if (photo) {
+        const cloudinaryFormData = new FormData();
+        cloudinaryFormData.append("file", photo);
+        cloudinaryFormData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+        const uploadResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: cloudinaryFormData,
+          }
+        );
+
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          console.error("Cloudinary upload error:", uploadResult);
+          throw new Error(
+            uploadResult.error?.message || "The animal photo could not be uploaded."
+          );
+        }
+
+        uploadedPhotoUrl = uploadResult.secure_url;
+      }
+
       const reportData = {
         animalType: form.animalType,
         condition: form.condition,
@@ -351,8 +383,8 @@ function ReportAnimal() {
           longitude: location[1],
         },
 
-        // Photo upload will be connected to Cloudinary later.
-        photoUrl: null,
+        // Cloudinary image URL (null when no photo was selected).
+        photoUrl: uploadedPhotoUrl,
 
         status: "Pending",
         reporterUid: currentUser.uid,
@@ -382,7 +414,7 @@ function ReportAnimal() {
       console.error("Error submitting report:", error);
 
       alert(
-        "Unable to submit your report. Please try again."
+        error.message || "Unable to submit your report. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -672,7 +704,9 @@ function ReportAnimal() {
               disabled={submitting}
             >
               {submitting
-                ? "Submitting..."
+                ? photo
+                  ? "Uploading photo & submitting..."
+                  : "Submitting..."
                 : "Submit Animal Report"}
 
               <Upload size={17} />

@@ -1,8 +1,12 @@
-
 .adoption-page {
   width: 100%;
   min-height: 100vh;
   background: #FFF9F6;
+  font-family: Arial, sans-serif;
+}
+
+.adoption-page * {
+  font-family: Arial, sans-serif;
 }
 
 .adoption-hero {
@@ -141,6 +145,7 @@
   color: white;
   border-radius: 8px;
   font-weight: bold;
+  text-decoration: none;
 }
 
 @media (max-width: 650px) {

@@ -50,7 +50,9 @@ function AdminRescueReports() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedReport, setSelectedReport] = useState(null);
+  const [updatingReportId, setUpdatingReportId] = useState(null);
 
+  // FETCH RESCUE REPORTS
   useEffect(() => {
     const reportsQuery = query(
       collection(db, "rescueReports"),
@@ -77,6 +79,7 @@ function AdminRescueReports() {
     return () => unsubscribe();
   }, []);
 
+  // SEARCH AND FILTER REPORTS
   const filteredReports = useMemo(() => {
     return reports.filter((report) => {
       const searchText = search.toLowerCase();
@@ -98,17 +101,42 @@ function AdminRescueReports() {
     });
   }, [reports, search, statusFilter]);
 
+  // UPDATE REPORT STATUS
   const handleStatusChange = async (reportId, newStatus) => {
     try {
+      setUpdatingReportId(reportId);
+
       await updateDoc(doc(db, "rescueReports", reportId), {
         status: newStatus,
       });
+
+      console.log("Report status updated successfully:", newStatus);
+
+      // Update selected report details if the modal is open
+      setSelectedReport((previous) =>
+        previous?.id === reportId
+          ? { ...previous, status: newStatus }
+          : previous
+      );
+
     } catch (error) {
-      console.error("Error updating report status:", error);
-      alert("Unable to update report status. Please try again.");
+      console.error("Firebase update error:", {
+        code: error.code,
+        message: error.message,
+      });
+
+      alert(
+        `Unable to update report status.\n\nError: ${
+          error.code || "Unknown error"
+        }\n${error.message || "Please check your Firebase configuration."}`
+      );
+
+    } finally {
+      setUpdatingReportId(null);
     }
   };
 
+  // DELETE REPORT
   const handleDelete = async (report) => {
     const confirmed = window.confirm(
       "Are you sure you want to permanently delete this rescue report?"
@@ -124,9 +152,15 @@ function AdminRescueReports() {
       }
 
       alert("Rescue report deleted successfully.");
+
     } catch (error) {
       console.error("Error deleting report:", error);
-      alert("Unable to delete report. Please try again.");
+
+      alert(
+        `Unable to delete report.\n\nError: ${
+          error.code || "Unknown error"
+        }\n${error.message || ""}`
+      );
     }
   };
 
@@ -137,6 +171,7 @@ function AdminRescueReports() {
       <div className="reports-toolbar">
         <div className="reports-search">
           <Search size={19} />
+
           <input
             type="text"
             placeholder="Search animal, description, or location..."
@@ -151,6 +186,7 @@ function AdminRescueReports() {
           className="reports-status-filter"
         >
           <option value="All">All Statuses</option>
+
           {reportStatuses.map((status) => (
             <option key={status} value={status}>
               {status}
@@ -162,6 +198,7 @@ function AdminRescueReports() {
       {/* REPORT COUNT */}
       <div className="reports-count">
         <ClipboardList size={19} />
+
         <span>
           Showing <strong>{filteredReports.length}</strong> of{" "}
           <strong>{reports.length}</strong> reports
@@ -176,7 +213,9 @@ function AdminRescueReports() {
       ) : filteredReports.length === 0 ? (
         <div className="reports-empty">
           <ClipboardList size={42} />
+
           <h3>No Rescue Reports Found</h3>
+
           <p>
             {reports.length === 0
               ? "Submitted animal reports will appear here."
@@ -202,6 +241,7 @@ function AdminRescueReports() {
                 <tr key={report.id}>
                   <td>
                     <strong>{report.animalType || "Unknown"}</strong>
+
                     <span className="report-description">
                       {report.description || "No description"}
                     </span>
@@ -212,6 +252,7 @@ function AdminRescueReports() {
                   <td>
                     <span className="report-location">
                       <MapPin size={14} />
+
                       {report.locationDescription ||
                         report.address ||
                         "No location details"}
@@ -227,10 +268,13 @@ function AdminRescueReports() {
 
                   <td>
                     <select
-                      className={`report-status-select ${report.status
-                        ?.toLowerCase()
+                      className={`report-status-select ${(
+                        report.status || "Pending"
+                      )
+                        .toLowerCase()
                         .replace(/\s+/g, "-")}`}
                       value={report.status || "Pending"}
+                      disabled={updatingReportId === report.id}
                       onChange={(e) =>
                         handleStatusChange(report.id, e.target.value)
                       }
@@ -241,6 +285,10 @@ function AdminRescueReports() {
                         </option>
                       ))}
                     </select>
+
+                    {updatingReportId === report.id && (
+                      <small>Updating...</small>
+                    )}
                   </td>
 
                   <td>
@@ -283,7 +331,10 @@ function AdminRescueReports() {
             <div className="report-modal-header">
               <div>
                 <span>RESCUE REPORT DETAILS</span>
-                <h2>{selectedReport.animalType || "Animal Report"}</h2>
+
+                <h2>
+                  {selectedReport.animalType || "Animal Report"}
+                </h2>
               </div>
 
               <button
@@ -310,32 +361,45 @@ function AdminRescueReports() {
             <div className="report-modal-details">
               <div>
                 <span>Animal Type</span>
-                <strong>{selectedReport.animalType || "N/A"}</strong>
+                <strong>
+                  {selectedReport.animalType || "N/A"}
+                </strong>
               </div>
 
               <div>
                 <span>Condition</span>
-                <strong>{selectedReport.condition || "N/A"}</strong>
+                <strong>
+                  {selectedReport.condition || "N/A"}
+                </strong>
               </div>
 
               <div>
                 <span>Status</span>
-                <strong>{selectedReport.status || "Pending"}</strong>
+                <strong>
+                  {selectedReport.status || "Pending"}
+                </strong>
               </div>
 
               <div>
                 <span>Date Submitted</span>
-                <strong>{formatDate(selectedReport.createdAt)}</strong>
+                <strong>
+                  {formatDate(selectedReport.createdAt)}
+                </strong>
               </div>
 
               <div className="report-modal-full">
                 <span>Description</span>
-                <p>{selectedReport.description || "No description provided."}</p>
+                <p>
+                  {selectedReport.description ||
+                    "No description provided."}
+                </p>
               </div>
 
               <div className="report-modal-full">
                 <span>Address</span>
-                <p>{selectedReport.address || "No address available."}</p>
+                <p>
+                  {selectedReport.address || "No address available."}
+                </p>
               </div>
 
               <div className="report-modal-full">
@@ -349,6 +413,7 @@ function AdminRescueReports() {
               {selectedReport.location && (
                 <div className="report-modal-full">
                   <span>Coordinates</span>
+
                   <p>
                     {selectedReport.location.latitude},{" "}
                     {selectedReport.location.longitude}

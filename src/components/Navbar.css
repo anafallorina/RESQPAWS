@@ -1,3 +1,6 @@
+/* =====================================
+   NAVBAR
+===================================== */
 
 .navbar {
   width: 100%;
@@ -9,6 +12,11 @@
   background: #FFF9F6;
   position: relative;
   z-index: 100;
+  font-family: Arial, sans-serif;
+}
+
+.navbar * {
+  font-family: Arial, sans-serif;
 }
 
 .navbar-logo {
@@ -34,6 +42,7 @@
   color: #59675B;
   font-size: 14px;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .navbar-links > a:hover,
@@ -51,6 +60,7 @@
   color: #59675B;
   font-size: 14px;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .register-btn {
@@ -60,6 +70,7 @@
   color: white;
   font-size: 14px;
   font-weight: 700;
+  text-decoration: none;
 }
 
 .register-btn:hover {

@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   PawPrint,
@@ -14,13 +15,114 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+
+import { auth, db } from "../firebase";
 import "./Dashboard.css";
 
 function Dashboard() {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState("");
+
+  useEffect(() => {
+    let unsubscribeReports = () => {};
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      unsubscribeReports();
+
+      if (!user) {
+        setReports([]);
+        setUserEmail("");
+        setLoading(false);
+        return;
+      }
+
+      setUserEmail(user.email || "");
+
+      setLoading(true);
+
+      // Get only reports submitted by the logged-in user
+      const reportsQuery = query(
+        collection(db, "rescueReports"),
+        where("reporterUid", "==", user.uid)
+      );
+
+      // Listen for real-time Firestore updates
+      unsubscribeReports = onSnapshot(
+        reportsQuery,
+        (snapshot) => {
+          const userReports = snapshot.docs.map((document) => ({
+            id: document.id,
+            ...document.data(),
+          }));
+
+          // Sort newest reports first
+          userReports.sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
+            const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
+            return dateB - dateA;
+          });
+
+          setReports(userReports);
+          setLoading(false);
+        },
+        (error) => {
+          console.error("Error fetching dashboard reports:", error);
+          setLoading(false);
+        }
+      );
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeReports();
+    };
+  }, []);
+
+  const resolvedReports = reports.filter(
+    (report) => report.status?.toLowerCase() === "resolved"
+  ).length;
+
+  const formatDate = (timestamp) => {
+    if (!timestamp?.toDate) return "Date unavailable";
+
+    return timestamp.toDate().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const getStatusClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return "pending";
+
+      case "under review":
+        return "under-review";
+
+      case "in progress":
+        return "in-progress";
+
+      case "resolved":
+        return "resolved";
+
+      default:
+        return "pending";
+    }
+  };
+
   return (
     <div className="dashboard">
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <aside className="dashboard-sidebar">
         <Link to="/" className="dashboard-logo">
           <PawPrint size={27} />
@@ -64,10 +166,10 @@ function Dashboard() {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* MAIN CONTENT */}
       <main className="dashboard-main">
 
-        {/* Header */}
+        {/* HEADER */}
         <header className="dashboard-header">
           <div>
             <h2>Dashboard</h2>
@@ -75,7 +177,11 @@ function Dashboard() {
           </div>
 
           <div className="dashboard-user">
-            <button className="notification-button" aria-label="Notifications">
+            <button
+              className="notification-button"
+              aria-label="Notifications"
+              type="button"
+            >
               <Bell size={20} />
             </button>
 
@@ -83,21 +189,31 @@ function Dashboard() {
               <UserRound size={21} />
             </div>
 
-            <span>My Account</span>
+            <span title={userEmail}>
+              My Account
+            </span>
           </div>
         </header>
 
-        {/* Welcome Banner */}
+        {/* WELCOME BANNER */}
         <section className="dashboard-welcome">
           <div>
             <span>WELCOME TO RESQPAWS</span>
-            <h1>Every little action<br />can save a life.</h1>
+
+            <h1>
+              Every little action<br />
+              can save a life.
+            </h1>
+
             <p>
               Help protect animals, report cases, and make
               a difference in your community.
             </p>
 
-            <Link to="/report-animal" className="dashboard-primary-btn">
+            <Link
+              to="/report-animal"
+              className="dashboard-primary-btn"
+            >
               <Plus size={18} />
               Report an Animal
             </Link>
@@ -108,7 +224,7 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* Overview Cards */}
+        {/* OVERVIEW */}
         <section className="dashboard-section">
           <div className="dashboard-section-heading">
             <div>
@@ -118,36 +234,54 @@ function Dashboard() {
           </div>
 
           <div className="overview-grid">
+
+            {/* TOTAL REPORTS */}
             <div className="overview-card">
               <div className="overview-icon pink">
                 <ClipboardList size={23} />
               </div>
+
               <p>Total Reports</p>
-              <h2>0</h2>
-              <span>No reports submitted yet</span>
+
+              <h2>
+                {loading ? "..." : reports.length}
+              </h2>
+
+              <span>Your submitted rescue reports</span>
             </div>
 
+            {/* RESOLVED REPORTS */}
             <div className="overview-card">
               <div className="overview-icon green">
                 <Heart size={23} />
               </div>
-              <p>Rescued Animals</p>
-              <h2>0</h2>
-              <span>Animals rescued through your reports</span>
+
+              <p>Resolved Reports</p>
+
+              <h2>
+                {loading ? "..." : resolvedReports}
+              </h2>
+
+              <span>Your reports marked as resolved</span>
             </div>
 
+            {/* VOLUNTEER ACTIVITIES */}
             <div className="overview-card">
               <div className="overview-icon pink">
                 <HandHeart size={23} />
               </div>
+
               <p>Volunteer Activities</p>
+
               <h2>0</h2>
+
               <span>Your volunteer participation</span>
             </div>
+
           </div>
         </section>
 
-        {/* Quick Access */}
+        {/* QUICK ACCESS */}
         <section className="dashboard-section">
           <div className="dashboard-section-heading">
             <div>
@@ -162,8 +296,13 @@ function Dashboard() {
               <div className="quick-icon">
                 <MapPin size={24} />
               </div>
+
               <h3>Report an Animal</h3>
-              <p>Report stray, injured, or abandoned animals.</p>
+
+              <p>
+                Report stray, injured, or abandoned animals.
+              </p>
+
               <ArrowUpRight size={19} className="quick-arrow" />
             </Link>
 
@@ -171,8 +310,13 @@ function Dashboard() {
               <div className="quick-icon">
                 <ClipboardList size={24} />
               </div>
+
               <h3>Track Rescue Cases</h3>
-              <p>Check updates on your submitted reports.</p>
+
+              <p>
+                Check updates on your submitted reports.
+              </p>
+
               <ArrowUpRight size={19} className="quick-arrow" />
             </Link>
 
@@ -180,8 +324,13 @@ function Dashboard() {
               <div className="quick-icon">
                 <Heart size={24} />
               </div>
+
               <h3>Find a Companion</h3>
-              <p>Discover animals waiting for adoption.</p>
+
+              <p>
+                Discover animals waiting for adoption.
+              </p>
+
               <ArrowUpRight size={19} className="quick-arrow" />
             </Link>
 
@@ -189,23 +338,92 @@ function Dashboard() {
               <div className="quick-icon">
                 <HandHeart size={24} />
               </div>
+
               <h3>Become a Volunteer</h3>
-              <p>Help make animal rescue possible.</p>
+
+              <p>
+                Help make animal rescue possible.
+              </p>
+
               <ArrowUpRight size={19} className="quick-arrow" />
             </Link>
 
           </div>
         </section>
 
-        {/* Recent Activity */}
+        {/* RECENT ACTIVITY */}
         <section className="dashboard-section recent-activity">
-          <h2>Recent Activity</h2>
+          <div className="recent-activity-heading">
+            <div>
+              <h2>Recent Activity</h2>
+              <p>Your latest submitted rescue reports</p>
+            </div>
 
-          <div className="activity-empty">
-            <ClipboardList size={35} />
-            <h3>No recent activity</h3>
-            <p>Your reports and activities will appear here.</p>
+            <Link to="/rescue-cases">
+              View All
+            </Link>
           </div>
+
+          {loading ? (
+            <div className="activity-empty">
+              <p>Loading your reports...</p>
+            </div>
+          ) : reports.length === 0 ? (
+            <div className="activity-empty">
+              <ClipboardList size={35} />
+
+              <h3>No recent activity</h3>
+
+              <p>
+                Your submitted rescue reports will appear here.
+              </p>
+
+              <Link
+                to="/report-animal"
+                className="activity-report-link"
+              >
+                Submit Your First Report
+              </Link>
+            </div>
+          ) : (
+            <div className="dashboard-activity-list">
+              {reports.slice(0, 5).map((report) => (
+                <div
+                  className="dashboard-activity-item"
+                  key={report.id}
+                >
+                  <div className="activity-report-icon">
+                    <PawPrint size={21} />
+                  </div>
+
+                  <div className="activity-report-info">
+                    <h3>
+                      {report.animalType || "Animal"} -{" "}
+                      {report.condition || "Reported"}
+                    </h3>
+
+                    <p>
+                      {formatDate(report.createdAt)}
+                    </p>
+
+                    {report.locationDescription && (
+                      <small>
+                        {report.locationDescription}
+                      </small>
+                    )}
+                  </div>
+
+                  <span
+                    className={`dashboard-report-status ${getStatusClass(
+                      report.status
+                    )}`}
+                  >
+                    {report.status || "Pending"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
       </main>
