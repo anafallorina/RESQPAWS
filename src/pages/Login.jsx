@@ -62,18 +62,25 @@ function Login() {
 
       const currentUser = userCredential.user;
 
+      // Get the user's role from Firestore
       const userRef = doc(db, "users", currentUser.uid);
       const userSnapshot = await getDoc(userRef);
 
       const userRole = userSnapshot.exists()
-        ? userSnapshot.data().role
+        ? userSnapshot.data().role?.toLowerCase().trim()
         : "user";
 
-      // ADMINS ALWAYS GO TO ADMIN DASHBOARD
+      console.log("Logged-in user:", currentUser.uid);
+      console.log("User role:", userRole);
+
+      // Redirect according to the user's role
       if (userRole === "admin") {
         navigate("/admin", { replace: true });
-      } else {
-        // RETURN USER TO THE PAGE THEY ORIGINALLY REQUESTED
+
+      } else if (userRole === "rescuer") {
+        navigate("/rescuer", { replace: true });
+
+      } else if (userRole === "user") {
         const destination = location.state?.from;
 
         if (destination?.pathname) {
@@ -84,6 +91,9 @@ function Login() {
         } else {
           navigate("/dashboard", { replace: true });
         }
+
+      } else {
+        navigate("/dashboard", { replace: true });
       }
 
     } catch (error) {
@@ -109,6 +119,11 @@ function Login() {
 
         case "auth/network-request-failed":
           setError("Network error. Please check your internet connection.");
+          break;
+
+        case "permission-denied":
+        case "firestore/permission-denied":
+          setError("Unable to verify your account role. Please contact the administrator.");
           break;
 
         default:

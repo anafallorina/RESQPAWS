@@ -28,12 +28,15 @@ function RescuerRoute({ children }) {
         const userRef = doc(db, "users", user.uid);
         const userSnapshot = await getDoc(userRef);
 
-        const authorized =
-          userSnapshot.exists() &&
-          userSnapshot.data().role === "rescuer";
+        const userRole = userSnapshot.exists()
+          ? userSnapshot.data().role?.toLowerCase().trim()
+          : "";
+
+        console.log("Rescuer route - User UID:", user.uid);
+        console.log("Rescuer route - User role:", userRole);
 
         if (active) {
-          setIsRescuer(authorized);
+          setIsRescuer(userRole === "rescuer");
           setChecking(false);
         }
       } catch (error) {
