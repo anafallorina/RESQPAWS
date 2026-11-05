@@ -1,0 +1,293 @@
+
+.adoption-management {
+  margin-top: 25px;
+}
+
+.adoption-management-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.adoption-management-top h3 {
+  margin: 0 0 6px;
+  color: #39483C;
+}
+
+.adoption-management-top p,
+.adoption-form-heading p {
+  margin: 0;
+  color: #879087;
+  font-size: 13px;
+}
+
+.adoption-add-btn,
+.adoption-save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 17px;
+  border: none;
+  border-radius: 8px;
+  background: #718C75;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.adoption-add-btn:hover,
+.adoption-save-btn:hover {
+  background: #59745E;
+}
+
+.adoption-form-card {
+  padding: 24px;
+  margin-bottom: 25px;
+  border: 1px solid #EAEDE8;
+  border-radius: 12px;
+  background: #FFFDFC;
+}
+
+.adoption-form-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.adoption-form-heading h3 {
+  margin: 0 0 7px;
+}
+
+.adoption-close-btn {
+  background: transparent;
+  color: #777;
+  cursor: pointer;
+}
+
+.adoption-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.adoption-admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adoption-admin-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #39483C;
+}
+
+.adoption-admin-field input,
+.adoption-admin-field select,
+.adoption-admin-field textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #E2E6E0;
+  border-radius: 8px;
+  background: white;
+  color: #39483C;
+  font: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.adoption-admin-field input:focus,
+.adoption-admin-field select:focus,
+.adoption-admin-field textarea:focus {
+  outline: none;
+  border-color: #718C75;
+}
+
+.adoption-admin-field small {
+  color: #879087;
+  font-size: 11px;
+}
+
+.adoption-description-field {
+  grid-column: 1 / -1;
+}
+
+.adoption-admin-field textarea {
+  resize: vertical;
+}
+
+.adoption-photo-preview {
+  margin-top: 18px;
+}
+
+.adoption-photo-preview img {
+  width: 150px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 9px;
+}
+
+.adoption-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.adoption-cancel-btn {
+  padding: 12px 17px;
+  border: 1px solid #E2E6E0;
+  border-radius: 8px;
+  background: white;
+  color: #59645A;
+  cursor: pointer;
+}
+
+.adoption-admin-error {
+  padding: 12px 15px;
+  margin: 15px 0;
+  border-radius: 8px;
+  background: #FCE8E8;
+  color: #B42318;
+  font-size: 13px;
+}
+
+.adoption-admin-empty {
+  padding: 45px 20px;
+  text-align: center;
+  border: 1px dashed #DDE4DA;
+  border-radius: 12px;
+  color: #879087;
+}
+
+.adoption-admin-empty svg {
+  color: #D99AA8;
+}
+
+.adoption-admin-empty h3 {
+  color: #39483C;
+  margin-bottom: 8px;
+}
+
+.adoption-admin-empty p {
+  font-size: 13px;
+}
+
+.adoption-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.adoption-admin-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 13px;
+  border: 1px solid #EAEDE8;
+  border-radius: 10px;
+  background: white;
+}
+
+.adoption-admin-item > img {
+  width: 85px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #F6F3EF;
+}
+
+.adoption-admin-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.adoption-admin-item-info h4 {
+  margin: 0 0 6px;
+  color: #39483C;
+}
+
+.adoption-admin-item-info p {
+  margin: 0 0 9px;
+  color: #879087;
+  font-size: 12px;
+}
+
+.adoption-status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #F0F1ED;
+  color: #59645A;
+}
+
+.status-available {
+  background: #E6F3E8;
+  color: #347448;
+}
+
+.status-pending {
+  background: #FFF2D9;
+  color: #986B17;
+}
+
+.status-adopted {
+  background: #F6E5EA;
+  color: #A34D68;
+}
+
+.adoption-admin-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.adoption-admin-item-actions button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #EAEDE8;
+  border-radius: 8px;
+  background: white;
+  color: #718C75;
+  cursor: pointer;
+}
+
+.adoption-admin-item-actions button:last-child {
+  color: #C75D68;
+}
+
+.adoption-admin-item-actions button:hover {
+  background: #F8F7F3;
+}
+
+@media (max-width: 650px) {
+  .adoption-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adoption-description-field {
+    grid-column: auto;
+  }
+
+  .adoption-management-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .adoption-admin-item {
+    flex-wrap: wrap;
+  }
+
+  .adoption-admin-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

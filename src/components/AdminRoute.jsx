@@ -14,18 +14,19 @@ function AdminRoute({ children }) {
     let active = true;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!active) return;
+
+      setChecking(true);
+      setIsAdmin(false);
+
       if (!user) {
-        if (active) {
-          setIsAdmin(false);
-          setChecking(false);
-        }
+        setChecking(false);
         return;
       }
 
       try {
-        const userSnapshot = await getDoc(
-          doc(db, "users", user.uid)
-        );
+        const userRef = doc(db, "users", user.uid);
+        const userSnapshot = await getDoc(userRef);
 
         const authorized =
           userSnapshot.exists() &&
@@ -52,14 +53,26 @@ function AdminRoute({ children }) {
   }, []);
 
   if (checking) {
-    return <div style={{ padding: "40px", textAlign: "center" }}>
-      Verifying administrator access...
-    </div>;
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "40px",
+        }}
+      >
+        Verifying administrator access...
+      </div>
+    );
   }
 
-  return isAdmin
-    ? children
-    : <Navigate to="/admin/login" replace />;
+  if (!isAdmin) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
 }
 
 export default AdminRoute;

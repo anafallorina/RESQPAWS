@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   PawPrint,
   Mail,
@@ -26,6 +26,7 @@ import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -46,7 +47,6 @@ function Login() {
     try {
       setLoading(true);
 
-      // Set login persistence
       await setPersistence(
         auth,
         rememberMe
@@ -54,7 +54,6 @@ function Login() {
           : browserSessionPersistence
       );
 
-      // Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email.trim(),
@@ -63,7 +62,6 @@ function Login() {
 
       const currentUser = userCredential.user;
 
-      // Get user's role from Firestore
       const userRef = doc(db, "users", currentUser.uid);
       const userSnapshot = await getDoc(userRef);
 
@@ -71,11 +69,21 @@ function Login() {
         ? userSnapshot.data().role
         : "user";
 
-      // Redirect according to account role
+      // ADMINS ALWAYS GO TO ADMIN DASHBOARD
       if (userRole === "admin") {
         navigate("/admin", { replace: true });
       } else {
-        navigate("/dashboard", { replace: true });
+        // RETURN USER TO THE PAGE THEY ORIGINALLY REQUESTED
+        const destination = location.state?.from;
+
+        if (destination?.pathname) {
+          navigate(
+            `${destination.pathname}${destination.search || ""}`,
+            { replace: true }
+          );
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
       }
 
     } catch (error) {

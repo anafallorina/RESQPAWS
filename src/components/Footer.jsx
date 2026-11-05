@@ -38,16 +38,7 @@
             <h3>Explore</h3>
             <Link to="/">Home</Link>
             <Link to="/adoption">Adoption</Link>
-            <Link to="/volunteer">Volunteer</Link>
             <Link to="/rescue-cases">Rescue Cases</Link>
-          </div>
-
-          {/* GET INVOLVED */}
-          <div className="footer-column">
-            <h3>Get Involved</h3>
-            <Link to="/report-animal">Report an Animal</Link>
-            <Link to="/register">Join RESQPAWS</Link>
-            <Link to="/login">Log In</Link>
           </div>
 
           {/* CONTACT */}

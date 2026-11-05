@@ -1,12 +1,14 @@
-
 import { useEffect, useRef, useState } from "react";
+
 import {
-  MapContainer,
-  TileLayer,
+  Map as MapLibre,
   Marker,
-  useMapEvents,
-} from "react-leaflet";
-import L from "leaflet";
+  NavigationControl,
+  setWorkerUrl,
+} from "maplibre-gl";
+
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+
 import {
   MapPin,
   Upload,
@@ -19,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { auth, db } from "../firebase";
+
 import {
   collection,
   addDoc,
@@ -28,33 +31,152 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import "./ReportAnimal.css";
 
-const philippinesCenter = [12.8797, 121.774];
+// =====================================
+// MAPLIBRE WORKER CONFIGURATION
+// =====================================
+setWorkerUrl(workerUrl);
 
-const animalMarker = L.divIcon({
-  className: "animal-map-marker",
-  html: '<div class="marker-pin"><span></span></div>',
-  iconSize: [28, 36],
-  iconAnchor: [14, 36],
-});
+// =====================================
+// MAP CONFIGURATION
+// =====================================
+const philippinesCenter = [121.774, 12.8797];
 
-// MAP CLICK HANDLER
-function MapClickHandler({ onLocationSelect }) {
-  useMapEvents({
-    click(event) {
-      onLocationSelect([
-        event.latlng.lat,
-        event.latlng.lng,
+const MAPTILER_API_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
+
+// =====================================
+// MAPLIBRE + MAPTILER MAP
+// =====================================
+function MapLibreMap({ location, onLocationSelect }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const onSelectRef = useRef(onLocationSelect);
+
+  const [mapError, setMapError] = useState("");
+
+  useEffect(() => {
+    onSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
+
+  // INITIALIZE MAP
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    if (!MAPTILER_API_KEY) {
+      setMapError(
+        "MapTiler API key is missing. Check your .env file."
+      );
+      return;
+    }
+
+    const map = new MapLibre({
+      container: containerRef.current,
+
+      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_API_KEY}`,
+
+      center: philippinesCenter,
+      zoom: 6,
+      attributionControl: true,
+    });
+
+    mapRef.current = map;
+
+    map.addControl(
+      new NavigationControl(),
+      "top-right"
+    );
+
+    // SELECT LOCATION BY CLICKING THE MAP
+    map.on("click", (event) => {
+      onSelectRef.current([
+        event.lngLat.lat,
+        event.lngLat.lng,
       ]);
-    },
-  });
+    });
 
-  return null;
+    // MAP LOAD ERROR
+    map.on("error", (event) => {
+      console.error("MapLibre error:", event.error);
+
+      setMapError(
+        "Unable to load the map. Please check your MapTiler API key and internet connection."
+      );
+    });
+
+    map.on("load", () => {
+      setMapError("");
+      console.log("MapTiler map loaded successfully.");
+    });
+
+    return () => {
+      markerRef.current?.remove();
+      markerRef.current = null;
+
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // UPDATE LOCATION MARKER
+  useEffect(() => {
+    const map = mapRef.current;
+
+    if (!map) return;
+
+    if (!location) {
+      markerRef.current?.remove();
+      markerRef.current = null;
+      return;
+    }
+
+    const [latitude, longitude] = location;
+
+    if (markerRef.current) {
+      markerRef.current.setLngLat([
+        longitude,
+        latitude,
+      ]);
+    } else {
+      markerRef.current = new Marker({
+        color: "#d99aa8",
+      })
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+    }
+
+    map.flyTo({
+      center: [longitude, latitude],
+      zoom: 15,
+      essential: true,
+    });
+  }, [location]);
+
+  return (
+    <>
+      <div
+        ref={containerRef}
+        className="report-map"
+      />
+
+      {mapError && (
+        <div
+          className="map-error-message"
+          role="alert"
+        >
+          <AlertCircle size={17} />
+          <span>{mapError}</span>
+        </div>
+      )}
+    </>
+  );
 }
 
-// CUSTOM DROPDOWN COMPONENT
+// =====================================
+// CUSTOM DROPDOWN
+// =====================================
 function CustomDropdown({
   id,
   value,
@@ -63,6 +185,7 @@ function CustomDropdown({
   onChange,
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
   const dropdownRef = useRef(null);
 
   const selectedOption = options.find(
@@ -85,12 +208,26 @@ function CustomDropdown({
       }
     };
 
-    document.addEventListener("mousedown", handleOutsideClick);
-    document.addEventListener("keydown", handleEscape);
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleEscape
+    );
 
     return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
     };
   }, []);
 
@@ -100,14 +237,19 @@ function CustomDropdown({
   };
 
   return (
-    <div className="custom-dropdown" ref={dropdownRef}>
+    <div
+      className="custom-dropdown"
+      ref={dropdownRef}
+    >
       <button
         type="button"
         id={id}
         className={`custom-dropdown-trigger ${
           isOpen ? "dropdown-open" : ""
         }`}
-        onClick={() => setIsOpen((previous) => !previous)}
+        onClick={() =>
+          setIsOpen((previous) => !previous)
+        }
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
@@ -132,21 +274,32 @@ function CustomDropdown({
       </button>
 
       {isOpen && (
-        <div className="custom-dropdown-menu" role="listbox">
+        <div
+          className="custom-dropdown-menu"
+          role="listbox"
+        >
           {options.map((option) => (
             <button
               type="button"
               key={option.value}
               className={`custom-dropdown-option ${
-                value === option.value ? "option-selected" : ""
+                value === option.value
+                  ? "option-selected"
+                  : ""
               }`}
-              onClick={() => handleSelect(option.value)}
+              onClick={() =>
+                handleSelect(option.value)
+              }
               role="option"
-              aria-selected={value === option.value}
+              aria-selected={
+                value === option.value
+              }
             >
               <span>{option.label}</span>
 
-              {value === option.value && <Check size={16} />}
+              {value === option.value && (
+                <Check size={16} />
+              )}
             </button>
           ))}
         </div>
@@ -154,8 +307,30 @@ function CustomDropdown({
     </div>
   );
 }
+// =====================================
+// AUTOMATIC URGENCY CLASSIFICATION
+// =====================================
+function getUrgencyLevel(condition) {
+  switch (condition) {
+    case "In Danger":
+      return "Critical";
 
+    case "Injured":
+    case "Sick":
+      return "High";
+
+    case "Abandoned":
+    case "Stray":
+      return "Medium";
+
+    case "Other":
+    default:
+      return "Needs Assessment";
+  }
+}
+// =====================================
 // MAIN REPORT ANIMAL COMPONENT
+// =====================================
 function ReportAnimal() {
   const [form, setForm] = useState({
     animalType: "",
@@ -165,19 +340,33 @@ function ReportAnimal() {
   });
 
   const [location, setLocation] = useState(null);
-  const [photo, setPhoto] = useState(null);
-  const [photoPreview, setPhotoPreview] = useState("");
 
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [resolvedAddress, setResolvedAddress] = useState("");
-  const [addressLoading, setAddressLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [photo, setPhoto] = useState(null);
+
+  const [photoPreview, setPhotoPreview] =
+    useState("");
+
+  const [locationLoading, setLocationLoading] =
+    useState(false);
+
+  const [resolvedAddress, setResolvedAddress] =
+    useState("");
+
+  const [addressLoading, setAddressLoading] =
+    useState(false);
+
+  const [submitting, setSubmitting] =
+    useState(false);
 
   // CLOUDINARY CONFIGURATION
   const CLOUDINARY_CLOUD_NAME = "sdxv2xdv";
-  const CLOUDINARY_UPLOAD_PRESET = "resqpaws_upload";
 
-  // UPDATE FORM FIELDS
+  const CLOUDINARY_UPLOAD_PRESET =
+    "resqpaws_upload";
+
+  // =====================================
+  // FORM HANDLING
+  // =====================================
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -187,10 +376,13 @@ function ReportAnimal() {
     }));
   };
 
+  // =====================================
   // AUTOMATIC ADDRESS DETECTION
+  // =====================================
   useEffect(() => {
     if (!location) {
       setResolvedAddress("");
+      setAddressLoading(false);
       return;
     }
 
@@ -220,6 +412,11 @@ function ReportAnimal() {
           );
         }
       } catch (error) {
+        console.error(
+          "Address lookup error:",
+          error
+        );
+
         if (!cancelled) {
           setResolvedAddress(
             "Unable to retrieve the address. Please try again."
@@ -239,7 +436,9 @@ function ReportAnimal() {
     };
   }, [location]);
 
-  // CLEAN UP PHOTO PREVIEW URL
+  // =====================================
+  // CLEAN UP PHOTO PREVIEW
+  // =====================================
   useEffect(() => {
     return () => {
       if (photoPreview) {
@@ -248,7 +447,9 @@ function ReportAnimal() {
     };
   }, [photoPreview]);
 
-  // HANDLE PHOTO UPLOAD
+  // =====================================
+  // PHOTO UPLOAD
+  // =====================================
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
 
@@ -261,25 +462,35 @@ function ReportAnimal() {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image must be 5 MB or smaller.");
+      alert(
+        "Image must be 5 MB or smaller."
+      );
+
       event.target.value = "";
       return;
     }
 
     setPhoto(file);
-    setPhotoPreview(URL.createObjectURL(file));
+
+    setPhotoPreview(
+      URL.createObjectURL(file)
+    );
   };
 
-  // REMOVE UPLOADED PHOTO
   const removePhoto = () => {
     setPhoto(null);
     setPhotoPreview("");
   };
 
-  // GET USER'S CURRENT LOCATION
+  // =====================================
+  // CURRENT LOCATION DETECTION
+  // =====================================
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
+      alert(
+        "Geolocation is not supported by your browser."
+      );
+
       return;
     }
 
@@ -294,6 +505,7 @@ function ReportAnimal() {
 
         setLocationLoading(false);
       },
+
       () => {
         alert(
           "Unable to get your location. Please allow location access or select a point on the map."
@@ -301,6 +513,7 @@ function ReportAnimal() {
 
         setLocationLoading(false);
       },
+
       {
         enableHighAccuracy: true,
         timeout: 10000,
@@ -308,47 +521,76 @@ function ReportAnimal() {
     );
   };
 
+  // =====================================
   // SUBMIT REPORT TO FIRESTORE
+  // =====================================
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!form.animalType || !form.condition) {
-      alert("Please select the animal type and current condition.");
+    if (
+      !form.animalType ||
+      !form.condition
+    ) {
+      alert(
+        "Please select the animal type and current condition."
+      );
+
       return;
     }
 
     if (!form.description.trim()) {
-      alert("Please provide a description of the animal.");
+      alert(
+        "Please provide a description of the animal."
+      );
+
       return;
     }
 
     if (!location) {
-      alert("Please select the animal's location on the map.");
+      alert(
+        "Please select the animal's location on the map."
+      );
+
       return;
     }
 
     if (addressLoading) {
-      alert("Please wait while the address is being detected.");
+      alert(
+        "Please wait while the address is being detected."
+      );
+
       return;
     }
 
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
-      alert("Please log in before submitting an animal report.");
+      alert(
+        "Please log in before submitting an animal report."
+      );
+
       return;
     }
 
     try {
       setSubmitting(true);
 
-      // UPLOAD PHOTO TO CLOUDINARY FIRST (if a photo was selected)
+      // CLOUDINARY PHOTO UPLOAD
       let uploadedPhotoUrl = null;
 
       if (photo) {
-        const cloudinaryFormData = new FormData();
-        cloudinaryFormData.append("file", photo);
-        cloudinaryFormData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        const cloudinaryFormData =
+          new FormData();
+
+        cloudinaryFormData.append(
+          "file",
+          photo
+        );
+
+        cloudinaryFormData.append(
+          "upload_preset",
+          CLOUDINARY_UPLOAD_PRESET
+        );
 
         const uploadResponse = await fetch(
           `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -358,45 +600,59 @@ function ReportAnimal() {
           }
         );
 
-        const uploadResult = await uploadResponse.json();
+        const uploadResult =
+          await uploadResponse.json();
 
         if (!uploadResponse.ok) {
-          console.error("Cloudinary upload error:", uploadResult);
+          console.error(
+            "Cloudinary upload error:",
+            uploadResult
+          );
+
           throw new Error(
-            uploadResult.error?.message || "The animal photo could not be uploaded."
+            uploadResult.error?.message ||
+              "The animal photo could not be uploaded."
           );
         }
 
-        uploadedPhotoUrl = uploadResult.secure_url;
+        uploadedPhotoUrl =
+          uploadResult.secure_url;
       }
 
-      const reportData = {
-        animalType: form.animalType,
-        condition: form.condition,
-        description: form.description.trim(),
-        locationDescription: form.locationDescription.trim(),
+      // FIRESTORE REPORT DATA
+    const reportData = {
+      animalType: form.animalType,
+      condition: form.condition,
 
-        address: resolvedAddress,
+      // Automatically classify urgency based on condition
+      urgency: getUrgencyLevel(form.condition),
 
-        location: {
-          latitude: location[0],
-          longitude: location[1],
-        },
+      description: form.description.trim(),
 
-        // Cloudinary image URL (null when no photo was selected).
-        photoUrl: uploadedPhotoUrl,
+      locationDescription: form.locationDescription.trim(),
 
-        status: "Pending",
-        reporterUid: currentUser.uid,
-        createdAt: serverTimestamp(),
-      };
+      address: resolvedAddress,
+
+      location: {
+        latitude: location[0],
+        longitude: location[1],
+      },
+
+      photoUrl: uploadedPhotoUrl,
+
+      status: "Pending",
+      reporterUid: currentUser.uid,
+      createdAt: serverTimestamp(),
+    };
 
       await addDoc(
         collection(db, "rescueReports"),
         reportData
       );
 
-      alert("Animal report submitted successfully!");
+      alert(
+        "Animal report submitted successfully!"
+      );
 
       // RESET FORM
       setForm({
@@ -409,18 +665,24 @@ function ReportAnimal() {
       setLocation(null);
       setPhoto(null);
       setPhotoPreview("");
-
     } catch (error) {
-      console.error("Error submitting report:", error);
+      console.error(
+        "Error submitting report:",
+        error
+      );
 
       alert(
-        error.message || "Unable to submit your report. Please try again."
+        error.message ||
+          "Unable to submit your report. Please try again."
       );
     } finally {
       setSubmitting(false);
     }
   };
 
+  // =====================================
+  // USER INTERFACE
+  // =====================================
   return (
     <>
       <Navbar />
@@ -434,8 +696,9 @@ function ReportAnimal() {
           <h1>Report an Animal</h1>
 
           <p>
-            Found an animal that needs help? Share the details so
-            the rescue team can locate and assist them.
+            Found an animal that needs help?
+            Share the details so the rescue
+            team can locate and assist them.
           </p>
         </section>
 
@@ -446,11 +709,17 @@ function ReportAnimal() {
           {/* ANIMAL INFORMATION */}
           <div className="report-section">
             <div className="section-heading">
-              <span className="section-number">01</span>
+              <span className="section-number">
+                01
+              </span>
 
               <div>
                 <h2>Animal Information</h2>
-                <p>Tell us about the animal you found.</p>
+
+                <p>
+                  Tell us about the animal
+                  you found.
+                </p>
               </div>
             </div>
 
@@ -471,16 +740,26 @@ function ReportAnimal() {
                     }))
                   }
                   options={[
-                    { value: "Dog", label: "Dog" },
-                    { value: "Cat", label: "Cat" },
-                    { value: "Other", label: "Other" },
+                    {
+                      value: "Dog",
+                      label: "Dog",
+                    },
+                    {
+                      value: "Cat",
+                      label: "Cat",
+                    },
+                    {
+                      value: "Other",
+                      label: "Other",
+                    },
                   ]}
                 />
               </div>
 
               <div className="form-field">
                 <label htmlFor="condition">
-                  Current Condition <span>*</span>
+                  Current Condition{" "}
+                  <span>*</span>
                 </label>
 
                 <CustomDropdown
@@ -494,12 +773,30 @@ function ReportAnimal() {
                     }))
                   }
                   options={[
-                    { value: "Injured", label: "Injured" },
-                    { value: "Sick", label: "Sick" },
-                    { value: "Stray", label: "Stray" },
-                    { value: "Abandoned", label: "Abandoned" },
-                    { value: "In Danger", label: "In Danger" },
-                    { value: "Other", label: "Other" },
+                    {
+                      value: "Injured",
+                      label: "Injured",
+                    },
+                    {
+                      value: "Sick",
+                      label: "Sick",
+                    },
+                    {
+                      value: "Stray",
+                      label: "Stray",
+                    },
+                    {
+                      value: "Abandoned",
+                      label: "Abandoned",
+                    },
+                    {
+                      value: "In Danger",
+                      label: "In Danger",
+                    },
+                    {
+                      value: "Other",
+                      label: "Other",
+                    },
                   ]}
                 />
               </div>
@@ -527,11 +824,17 @@ function ReportAnimal() {
           {/* ANIMAL PHOTO */}
           <div className="report-section">
             <div className="section-heading">
-              <span className="section-number">02</span>
+              <span className="section-number">
+                02
+              </span>
 
               <div>
                 <h2>Animal Photo</h2>
-                <p>Upload a photo to help identify the animal.</p>
+
+                <p>
+                  Upload a photo to help
+                  identify the animal.
+                </p>
               </div>
             </div>
 
@@ -546,7 +849,12 @@ function ReportAnimal() {
                   <span>{photo?.name}</span>
 
                   <small>
-                    {(photo.size / 1024 / 1024).toFixed(2)} MB
+                    {(
+                      photo.size /
+                      1024 /
+                      1024
+                    ).toFixed(2)}{" "}
+                    MB
                   </small>
                 </div>
 
@@ -568,9 +876,18 @@ function ReportAnimal() {
                   <Camera size={25} />
                 </span>
 
-                <strong>Upload an animal photo</strong>
-                <span>Click to browse your files</span>
-                <small>JPG, PNG or WEBP · Maximum 5 MB</small>
+                <strong>
+                  Upload an animal photo
+                </strong>
+
+                <span>
+                  Click to browse your files
+                </span>
+
+                <small>
+                  JPG, PNG or WEBP · Maximum
+                  5 MB
+                </small>
 
                 <input
                   id="animalPhoto"
@@ -587,11 +904,17 @@ function ReportAnimal() {
           {/* ANIMAL LOCATION */}
           <div className="report-section">
             <div className="section-heading">
-              <span className="section-number">03</span>
+              <span className="section-number">
+                03
+              </span>
 
               <div>
                 <h2>Animal Location</h2>
-                <p>Pin the location where the animal was found.</p>
+
+                <p>
+                  Pin the location where
+                  the animal was found.
+                </p>
               </div>
             </div>
 
@@ -599,33 +922,17 @@ function ReportAnimal() {
               <MapPin size={18} />
 
               <span>
-                Click anywhere on the map to place a location pin.
+                Click anywhere on the map
+                to place a location pin.
               </span>
             </div>
 
+            {/* MAPLIBRE MAP */}
             <div className="map-container">
-              <MapContainer
-                center={philippinesCenter}
-                zoom={6}
-                scrollWheelZoom={true}
-                className="report-map"
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-
-                <MapClickHandler
-                  onLocationSelect={setLocation}
-                />
-
-                {location && (
-                  <Marker
-                    position={location}
-                    icon={animalMarker}
-                  />
-                )}
-              </MapContainer>
+              <MapLibreMap
+                location={location}
+                onLocationSelect={setLocation}
+              />
             </div>
 
             <button
@@ -655,11 +962,14 @@ function ReportAnimal() {
                   <p>
                     {addressLoading
                       ? "Please wait while we identify the location."
-                      : resolvedAddress || "Address not available."}
+                      : resolvedAddress ||
+                        "Address not available."}
                   </p>
 
                   <small>
-                    Coordinates: {location[0].toFixed(6)},{" "}
+                    Coordinates:{" "}
+                    {location[0].toFixed(6)}
+                    ,{" "}
                     {location[1].toFixed(6)}
                   </small>
                 </div>
@@ -687,8 +997,11 @@ function ReportAnimal() {
             <AlertCircle size={19} />
 
             <p>
-              Please provide accurate information. If the animal is in
-              immediate danger, contact your local animal rescue authorities.
+              Please provide accurate
+              information. If the animal is
+              in immediate danger, contact
+              your local animal rescue
+              authorities.
             </p>
           </div>
 

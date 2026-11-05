@@ -121,20 +121,6 @@ function Home() {
               Explore Adoption <ArrowRight size={16} />
             </Link>
           </div>
-
-          <div className="feature-card">
-            <div className="feature-icon green-icon">
-              <HandHeart size={27} />
-            </div>
-            <h3>Become a Volunteer</h3>
-            <p>
-              Share your time and compassion by
-              supporting animal rescue efforts.
-            </p>
-            <Link to="/volunteer">
-              Join Us <ArrowRight size={16} />
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -148,10 +134,6 @@ function Home() {
             a safer and kinder world for animals.
           </p>
         </div>
-
-        <Link to="/register" className="cta-btn">
-          Join RESQPAWS <ArrowRight size={18} />
-        </Link>
       </section>
 
       <Footer />

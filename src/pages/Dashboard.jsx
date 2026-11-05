@@ -1,29 +1,37 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+
 import {
   PawPrint,
   LayoutDashboard,
   ClipboardList,
   Heart,
-  HandHeart,
   Plus,
   Bell,
   UserRound,
   LogOut,
   MapPin,
   ArrowUpRight,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 import { onAuthStateChanged } from "firebase/auth";
+
 import {
   collection,
   onSnapshot,
   query,
   where,
+  doc,
+  updateDoc,
 } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
+import NotificationPanel from "../components/NotificationPanel";
+import { playNotificationSound } from "../utils/notifications";
+
 import "./Dashboard.css";
 
 function Dashboard() {
@@ -31,30 +39,42 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
 
+  const [notifications, setNotifications] = useState([]);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+
+  const firstNotificationSnapshot = useRef(true);
+  const alarmInterval = useRef(null);
+
+  // LOAD USER REPORTS AND NOTIFICATIONS
   useEffect(() => {
     let unsubscribeReports = () => {};
+    let unsubscribeNotifications = () => {};
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       unsubscribeReports();
+      unsubscribeNotifications();
+
+      firstNotificationSnapshot.current = true;
 
       if (!user) {
         setReports([]);
+        setNotifications([]);
         setUserEmail("");
         setLoading(false);
+        setNotificationOpen(false);
         return;
       }
 
       setUserEmail(user.email || "");
-
       setLoading(true);
 
-      // Get only reports submitted by the logged-in user
+      // USER'S RESCUE REPORTS
       const reportsQuery = query(
         collection(db, "rescueReports"),
         where("reporterUid", "==", user.uid)
       );
 
-      // Listen for real-time Firestore updates
       unsubscribeReports = onSnapshot(
         reportsQuery,
         (snapshot) => {
@@ -63,7 +83,6 @@ function Dashboard() {
             ...document.data(),
           }));
 
-          // Sort newest reports first
           userReports.sort((a, b) => {
             const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
             const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
@@ -78,13 +97,117 @@ function Dashboard() {
           setLoading(false);
         }
       );
+
+      // USER'S NOTIFICATIONS
+      const notificationsQuery = query(
+        collection(db, "notifications"),
+        where("recipientUid", "==", user.uid)
+      );
+
+      unsubscribeNotifications = onSnapshot(
+        notificationsQuery,
+        (snapshot) => {
+          const notificationList = snapshot.docs.map((document) => ({
+            id: document.id,
+            ...document.data(),
+          }));
+
+          notificationList.sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
+            const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
+            return dateB - dateA;
+          });
+
+          // Ignore existing notifications on initial load.
+          // Only newly added notifications trigger the alarm.
+          if (firstNotificationSnapshot.current) {
+            firstNotificationSnapshot.current = false;
+          } else {
+            const newUnreadNotifications = snapshot
+              .docChanges()
+              .filter(
+                (change) =>
+                  change.type === "added" &&
+                  change.doc.data().read === false
+              );
+
+            if (newUnreadNotifications.length > 0) {
+              setNotificationOpen(true);
+            }
+          }
+
+          setNotifications(notificationList);
+        },
+        (error) => {
+          console.error("Error fetching notifications:", error);
+        }
+      );
     });
 
     return () => {
       unsubscribeAuth();
       unsubscribeReports();
+      unsubscribeNotifications();
     };
   }, []);
+
+  // UNREAD NOTIFICATION COUNT
+  const unreadCount = notifications.filter(
+    (notification) => !notification.read
+  ).length;
+
+  // REPEATING ALARM EVERY 5 SECONDS
+  useEffect(() => {
+    const hasUnread = notifications.some(
+      (notification) => !notification.read
+    );
+
+    if (soundEnabled && hasUnread) {
+      if (!alarmInterval.current) {
+        playNotificationSound();
+
+        alarmInterval.current = setInterval(() => {
+          playNotificationSound();
+        }, 5000);
+      }
+    } else {
+      if (alarmInterval.current) {
+        clearInterval(alarmInterval.current);
+        alarmInterval.current = null;
+      }
+    }
+
+    return () => {
+      if (alarmInterval.current) {
+        clearInterval(alarmInterval.current);
+        alarmInterval.current = null;
+      }
+    };
+  }, [soundEnabled, unreadCount]);
+
+  // MARK NOTIFICATION AS READ
+  const handleMarkRead = async (notificationId) => {
+    try {
+      await updateDoc(
+        doc(db, "notifications", notificationId),
+        { read: true }
+      );
+    } catch (error) {
+      console.error("Unable to mark notification as read:", error);
+      alert("Unable to update notification. Please try again.");
+    }
+  };
+
+  // ENABLE OR DISABLE SOUND
+  const handleSoundToggle = () => {
+    if (!soundEnabled) {
+      // This click allows the browser to start audio playback.
+      playNotificationSound();
+      setSoundEnabled(true);
+    } else {
+      setSoundEnabled(false);
+    }
+  };
 
   const resolvedReports = reports.filter(
     (report) => report.status?.toLowerCase() === "resolved"
@@ -104,16 +227,12 @@ function Dashboard() {
     switch (status?.toLowerCase()) {
       case "pending":
         return "pending";
-
       case "under review":
         return "under-review";
-
       case "in progress":
         return "in-progress";
-
       case "resolved":
         return "resolved";
-
       default:
         return "pending";
     }
@@ -121,12 +240,13 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-
       {/* SIDEBAR */}
       <aside className="dashboard-sidebar">
         <Link to="/" className="dashboard-logo">
           <PawPrint size={27} />
-          <span>RESQ<span>PAWS</span></span>
+          <span>
+            RESQ<span>PAWS</span>
+          </span>
         </Link>
 
         <p className="sidebar-label">MAIN MENU</p>
@@ -151,11 +271,6 @@ function Dashboard() {
             <Heart size={19} />
             Adoption
           </Link>
-
-          <Link to="/volunteer" className="sidebar-link">
-            <HandHeart size={19} />
-            Volunteer
-          </Link>
         </nav>
 
         <div className="sidebar-bottom">
@@ -168,7 +283,6 @@ function Dashboard() {
 
       {/* MAIN CONTENT */}
       <main className="dashboard-main">
-
         {/* HEADER */}
         <header className="dashboard-header">
           <div>
@@ -177,21 +291,77 @@ function Dashboard() {
           </div>
 
           <div className="dashboard-user">
+            {/* NOTIFICATION CONTROLS */}
+            <div style={{ position: "relative" }}>
+              <button
+                className="notification-button"
+                aria-label="Notifications"
+                type="button"
+                onClick={() => setNotificationOpen((previous) => !previous)}
+                style={{ position: "relative" }}
+              >
+                <Bell size={20} />
+
+                {unreadCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "-5px",
+                      right: "-5px",
+                      minWidth: "18px",
+                      height: "18px",
+                      padding: "0 4px",
+                      borderRadius: "20px",
+                      background: "#e34d79",
+                      color: "#fff",
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notificationOpen && (
+                <NotificationPanel
+                  notifications={notifications}
+                  onMarkRead={handleMarkRead}
+                  onClose={() => setNotificationOpen(false)}
+                />
+              )}
+            </div>
+
+            {/* ALARM CONTROL */}
             <button
-              className="notification-button"
-              aria-label="Notifications"
               type="button"
+              onClick={handleSoundToggle}
+              title={soundEnabled ? "Turn alarm off" : "Turn alarm on"}
+              aria-label={soundEnabled ? "Turn alarm off" : "Turn alarm on"}
+              style={{
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                color: soundEnabled ? "#d94b78" : "inherit",
+              }}
             >
-              <Bell size={20} />
+              {soundEnabled ? (
+                <Volume2 size={20} />
+              ) : (
+                <VolumeX size={20} />
+              )}
             </button>
 
             <div className="user-avatar">
               <UserRound size={21} />
             </div>
 
-            <span title={userEmail}>
-              My Account
-            </span>
+            <span title={userEmail}>My Account</span>
           </div>
         </header>
 
@@ -201,7 +371,8 @@ function Dashboard() {
             <span>WELCOME TO RESQPAWS</span>
 
             <h1>
-              Every little action<br />
+              Every little action
+              <br />
               can save a life.
             </h1>
 
@@ -234,50 +405,25 @@ function Dashboard() {
           </div>
 
           <div className="overview-grid">
-
-            {/* TOTAL REPORTS */}
             <div className="overview-card">
               <div className="overview-icon pink">
                 <ClipboardList size={23} />
               </div>
 
               <p>Total Reports</p>
-
-              <h2>
-                {loading ? "..." : reports.length}
-              </h2>
-
+              <h2>{loading ? "..." : reports.length}</h2>
               <span>Your submitted rescue reports</span>
             </div>
 
-            {/* RESOLVED REPORTS */}
             <div className="overview-card">
               <div className="overview-icon green">
                 <Heart size={23} />
               </div>
 
               <p>Resolved Reports</p>
-
-              <h2>
-                {loading ? "..." : resolvedReports}
-              </h2>
-
+              <h2>{loading ? "..." : resolvedReports}</h2>
               <span>Your reports marked as resolved</span>
             </div>
-
-            {/* VOLUNTEER ACTIVITIES */}
-            <div className="overview-card">
-              <div className="overview-icon pink">
-                <HandHeart size={23} />
-              </div>
-
-              <p>Volunteer Activities</p>
-
-              <h2>0</h2>
-
-              <span>Your volunteer participation</span>
-            </div>
-
           </div>
         </section>
 
@@ -291,7 +437,6 @@ function Dashboard() {
           </div>
 
           <div className="quick-access-grid">
-
             <Link to="/report-animal" className="quick-card">
               <div className="quick-icon">
                 <MapPin size={24} />
@@ -333,21 +478,6 @@ function Dashboard() {
 
               <ArrowUpRight size={19} className="quick-arrow" />
             </Link>
-
-            <Link to="/volunteer" className="quick-card">
-              <div className="quick-icon">
-                <HandHeart size={24} />
-              </div>
-
-              <h3>Become a Volunteer</h3>
-
-              <p>
-                Help make animal rescue possible.
-              </p>
-
-              <ArrowUpRight size={19} className="quick-arrow" />
-            </Link>
-
           </div>
         </section>
 
@@ -359,9 +489,7 @@ function Dashboard() {
               <p>Your latest submitted rescue reports</p>
             </div>
 
-            <Link to="/rescue-cases">
-              View All
-            </Link>
+            <Link to="/rescue-cases">View All</Link>
           </div>
 
           {loading ? (
@@ -402,14 +530,10 @@ function Dashboard() {
                       {report.condition || "Reported"}
                     </h3>
 
-                    <p>
-                      {formatDate(report.createdAt)}
-                    </p>
+                    <p>{formatDate(report.createdAt)}</p>
 
                     {report.locationDescription && (
-                      <small>
-                        {report.locationDescription}
-                      </small>
+                      <small>{report.locationDescription}</small>
                     )}
                   </div>
 
@@ -425,7 +549,6 @@ function Dashboard() {
             </div>
           )}
         </section>
-
       </main>
     </div>
   );

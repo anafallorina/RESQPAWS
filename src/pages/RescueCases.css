@@ -502,4 +502,57 @@
   .case-modal-photo {
     height: 250px;
   }
+  
+/* =====================================
+   MAPLIBRE + MAPTILER STYLING
+===================================== */
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 350px;
+  overflow: hidden;
+  border: 1px solid #dfe5df;
+  border-radius: 4px;
+  background: #f4f8f4;
+}
+
+.report-map {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.maplibregl-ctrl-group {
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+}
+
+.maplibregl-ctrl-group button {
+  cursor: pointer;
+}
+
+.map-error-message {
+  position: absolute;
+  bottom: 35px;
+  left: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px;
+  background: #fff2f2;
+  color: #a63d3d;
+  border: 1px solid #f0bcbc;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+@media (max-width: 650px) {
+  .map-container {
+    height: 280px;
+  }
+}
+
 }
