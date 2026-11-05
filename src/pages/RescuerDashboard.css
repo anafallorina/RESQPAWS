@@ -1,20 +1,41 @@
 
+/* =====================================
+   GENERAL LAYOUT
+===================================== */
+
+* {
+  box-sizing: border-box;
+}
+
 .rescuer-dashboard {
   display: flex;
+  width: 100%;
+  height: 100vh;
   min-height: 100vh;
+  overflow: hidden;
   background: #f8f8fa;
   color: #292333;
   font-family: inherit;
 }
 
+/* =====================================
+   SIDEBAR
+===================================== */
+
 .rescuer-sidebar {
   width: 250px;
   min-width: 250px;
+  height: 100vh;
   background: #fff;
   border-right: 1px solid #eeeaf0;
   padding: 28px 18px;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .rescuer-logo {
@@ -78,11 +99,22 @@
   text-align: left;
 }
 
+/* =====================================
+   MAIN CONTENT
+===================================== */
+
 .rescuer-main {
   flex: 1;
   min-width: 0;
+  height: 100vh;
   padding: 30px 38px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+
+/* =====================================
+   HEADER
+===================================== */
 
 .rescuer-header {
   display: flex;
@@ -138,7 +170,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
+
+/* =====================================
+   WELCOME BANNER
+===================================== */
 
 .rescuer-welcome {
   background: linear-gradient(115deg, #e94e83, #f28ca9);
@@ -175,6 +212,10 @@
   padding-right: 30px;
 }
 
+/* =====================================
+   SECTIONS
+===================================== */
+
 .rescuer-section {
   margin-top: 35px;
 }
@@ -195,6 +236,10 @@
   margin: 0;
 }
 
+/* =====================================
+   OVERVIEW CARDS
+===================================== */
+
 .rescuer-overview-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -206,6 +251,7 @@
   padding: 22px;
   border-radius: 13px;
   border: 1px solid #f0edf2;
+  min-width: 0;
 }
 
 .rescuer-overview-icon {
@@ -250,6 +296,10 @@
   font-size: 11px;
 }
 
+/* =====================================
+   RESCUE CASES
+===================================== */
+
 .rescuer-cases-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -261,6 +311,7 @@
   border: 1px solid #eeeaf0;
   border-radius: 14px;
   overflow: hidden;
+  min-width: 0;
 }
 
 .rescuer-case-image,
@@ -349,6 +400,7 @@
   color: #817987;
   font-size: 12px;
   margin: 8px 0;
+  overflow-wrap: anywhere;
 }
 
 .rescuer-case-info svg {
@@ -356,12 +408,17 @@
   color: #e84d83;
 }
 
+/* =====================================
+   CASE ACTIONS
+===================================== */
+
 .rescuer-case-actions {
   margin-top: 18px;
 }
 
 .rescuer-case-actions button {
   width: 100%;
+  min-height: 42px;
   border: none;
   border-radius: 8px;
   background: #e84d83;
@@ -393,6 +450,10 @@
   padding: 10px;
 }
 
+/* =====================================
+   EMPTY STATE
+===================================== */
+
 .rescuer-empty {
   background: #fff;
   border: 1px dashed #e7dfe9;
@@ -418,10 +479,15 @@
   margin: 0;
 }
 
-@media (max-width: 900px) {
+/* =====================================
+   TABLET VIEW
+===================================== */
+
+@media (max-width: 1024px) {
   .rescuer-sidebar {
-    width: 210px;
-    min-width: 210px;
+    width: 220px;
+    min-width: 220px;
+    padding: 25px 14px;
   }
 
   .rescuer-main {
@@ -431,68 +497,307 @@
   .rescuer-overview-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 650px) {
-  .rescuer-dashboard {
-    flex-direction: column;
+  .rescuer-cases-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
   }
 
-  .rescuer-sidebar {
-    width: 100%;
-    min-width: 0;
+  .rescuer-welcome {
+    padding: 28px;
+  }
+
+  .rescuer-case-content {
     padding: 16px;
+  }
+}
+
+/* =====================================
+   SMALL TABLET VIEW
+===================================== */
+
+@media (max-width: 768px) {
+  .rescuer-sidebar {
+    width: 190px;
+    min-width: 190px;
+    padding: 22px 12px;
   }
 
   .rescuer-logo {
-    margin-bottom: 20px;
-  }
-
-  .rescuer-sidebar-label,
-  .rescuer-sidebar-bottom {
-    display: none;
-  }
-
-  .rescuer-sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
+    font-size: 18px;
+    margin-left: 3px;
   }
 
   .rescuer-sidebar-link {
-    padding: 10px;
+    gap: 9px;
+    padding: 12px 9px;
     font-size: 12px;
   }
 
   .rescuer-main {
-    padding: 20px 15px;
+    padding: 22px 16px;
+  }
+
+  .rescuer-header h2 {
+    font-size: 22px;
+  }
+
+  .rescuer-welcome {
+    padding: 24px;
+    min-height: 180px;
+  }
+
+  .rescuer-welcome h1 {
+    font-size: 27px;
+  }
+
+  .rescuer-welcome-icon {
+    padding-right: 0;
+  }
+
+  .rescuer-overview-grid {
+    gap: 12px;
+  }
+
+  .rescuer-overview-card {
+    padding: 18px;
+  }
+
+  .rescuer-cases-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================
+   PHONE VIEW
+===================================== */
+
+@media (max-width: 650px) {
+  .rescuer-dashboard {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  /* Mobile navigation */
+  .rescuer-sidebar {
+    position: relative;
+    top: auto;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    padding: 16px;
+    border-right: none;
+    border-bottom: 1px solid #eeeaf0;
+    overflow: visible;
+  }
+
+  .rescuer-logo {
+    font-size: 20px;
+    margin: 0 0 16px 3px;
+  }
+
+  .rescuer-sidebar-label {
+    display: none;
+  }
+
+  .rescuer-sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rescuer-sidebar-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 11px 13px;
+    font-size: 12px;
+  }
+
+  .rescuer-sidebar-bottom {
+    display: block;
+    margin-top: 10px;
+  }
+
+  .rescuer-logout {
+    width: auto;
+    padding: 10px 13px;
+  }
+
+  /* Main content */
+  .rescuer-main {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 20px 15px 30px;
+    overflow: visible;
   }
 
   .rescuer-header {
     align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 22px;
   }
 
   .rescuer-header h2 {
     font-size: 20px;
   }
 
+  .rescuer-header p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .rescuer-user {
+    gap: 7px;
+  }
+
+  .rescuer-user strong {
+    font-size: 11px;
+  }
+
   .rescuer-user small {
     display: none;
   }
 
+  .rescuer-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Welcome banner */
   .rescuer-welcome {
-    padding: 25px;
+    min-height: 0;
+    padding: 24px 20px;
+    border-radius: 14px;
+  }
+
+  .rescuer-welcome span {
+    font-size: 10px;
   }
 
   .rescuer-welcome h1 {
-    font-size: 25px;
+    font-size: 24px;
+    line-height: 1.25;
+  }
+
+  .rescuer-welcome p {
+    font-size: 12px;
+    line-height: 1.5;
   }
 
   .rescuer-welcome-icon {
     display: none;
   }
 
-  .rescuer-overview-grid,
+  /* Sections */
+  .rescuer-section {
+    margin-top: 26px;
+  }
+
+  .rescuer-section-heading h2 {
+    font-size: 18px;
+  }
+
+  .rescuer-section-heading p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  /* Overview cards */
+  .rescuer-overview-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .rescuer-overview-card {
+    padding: 18px;
+  }
+
+  .rescuer-overview-card h2 {
+    font-size: 26px;
+  }
+
+  /* Assigned cases */
   .rescuer-cases-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .rescuer-case-image,
+  .rescuer-case-image-placeholder {
+    height: 180px;
+  }
+
+  .rescuer-case-content {
+    padding: 17px;
+  }
+
+  .rescuer-case-content h3 {
+    font-size: 16px;
+  }
+
+  .rescuer-case-description {
+    font-size: 12px;
+  }
+
+  .rescuer-case-info p {
+    font-size: 11px;
+  }
+
+  .rescuer-case-actions button {
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  .rescuer-empty {
+    padding: 35px 18px;
+  }
+}
+
+/* =====================================
+   VERY SMALL PHONE VIEW
+===================================== */
+
+@media (max-width: 380px) {
+  .rescuer-main {
+    padding: 16px 12px 25px;
+  }
+
+  .rescuer-sidebar {
+    padding: 14px 12px;
+  }
+
+  .rescuer-header h2 {
+    font-size: 18px;
+  }
+
+  .rescuer-header p {
+    font-size: 11px;
+  }
+
+  .rescuer-welcome {
+    padding: 20px 16px;
+  }
+
+  .rescuer-welcome h1 {
+    font-size: 21px;
+  }
+
+  .rescuer-overview-card {
+    padding: 16px;
+  }
+
+  .rescuer-case-content {
+    padding: 14px;
   }
 }
