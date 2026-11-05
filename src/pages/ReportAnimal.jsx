@@ -620,30 +620,30 @@ function ReportAnimal() {
       }
 
       // FIRESTORE REPORT DATA
-    const reportData = {
-      animalType: form.animalType,
-      condition: form.condition,
+  const reportData = {
+    animalType: form.animalType,
+    condition: form.condition,
 
-      // Automatically classify urgency based on condition
-      urgency: getUrgencyLevel(form.condition),
+    // Automatically classify urgency based on condition
+    urgency: getUrgencyLevel(form.condition),
 
-      description: form.description.trim(),
+    description: form.description.trim(),
 
-      locationDescription: form.locationDescription.trim(),
+    locationDescription: form.locationDescription.trim(),
 
-      address: resolvedAddress,
+    address: resolvedAddress,
 
-      location: {
-        latitude: location[0],
-        longitude: location[1],
-      },
+    location: {
+      latitude: location[0],
+      longitude: location[1],
+    },
 
-      photoUrl: uploadedPhotoUrl,
+    photoUrl: uploadedPhotoUrl,
 
-      status: "Pending",
-      reporterUid: currentUser.uid,
-      createdAt: serverTimestamp(),
-    };
+    status: "Pending",
+    reporterUid: currentUser.uid,
+    createdAt: serverTimestamp(),
+  };
 
       await addDoc(
         collection(db, "rescueReports"),

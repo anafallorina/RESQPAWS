@@ -147,7 +147,7 @@ function RescueCases() {
         </section>
 
         <section className="rescue-content">
-          {/* SEARCH AND FILTER */}
+          {/* SEARCH AND FILTER DROPDOWN */}
           <div className="rescue-toolbar">
             <div className="rescue-search">
               <Search size={19} />
@@ -160,25 +160,24 @@ function RescueCases() {
               />
             </div>
 
-            <div className="rescue-filter-label">
+            <div className="rescue-filter-wrapper">
               <Filter size={18} />
-              Filter by status
-            </div>
-          </div>
 
-          <div className="rescue-filters">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                className={`filter-btn ${
-                  activeFilter === filter ? "active" : ""
-                }`}
-                onClick={() => setActiveFilter(filter)}
+              <select
+                className="rescue-filter-select"
+                value={activeFilter}
+                onChange={(event) =>
+                  setActiveFilter(event.target.value)
+                }
+                aria-label="Filter rescue cases by status"
               >
-                {filter}
-              </button>
-            ))}
+                {filters.map((filter) => (
+                  <option key={filter} value={filter}>
+                    {filter === "All" ? "All Status" : filter}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* RESULTS HEADING */}
